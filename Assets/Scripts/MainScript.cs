@@ -5,7 +5,6 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-// TODO: Refactoring
 public class MainScript : MonoBehaviour
 {
     [SerializeField] Camera Camera;
@@ -14,31 +13,11 @@ public class MainScript : MonoBehaviour
     [SerializeField] Button ButtonSettings;
     [SerializeField] GameObject PanelSettings;
 
-    [Header("SettingsMenu")]
-    [SerializeField] Button ButtonTimeColor;
-    [SerializeField] Button ButtonBackgroundColor;
-    private enum EditMode
-    {
-        None,
-        TimeColor,
-        BackgroundColor
-    }
-    private EditMode editMode;
+    [Header("UI")]
+    [SerializeField] UISettingsMenu SettingsMenu;
 
-    [Header("ColorPicker")]
-    [SerializeField] FlexibleColorPicker ColorPicker;
-    private GameObject ColorPickerObject;
-
-    // Data
-    private const string TimeColorR = "TimeColorR";
-    private const string TimeColorG = "TimeColorG";
-    private const string TimeColorB = "TimeColorB";
-    private const string TimeColorA = "TimeColorA";
-
-    private const string BackgroundColorR = "BackgroundColorR";
-    private const string BackgroundColorG = "BackgroundColorG";
-    private const string BackgroundColorB = "BackgroundColorB";
-    private const string BackgroundColorA = "BackgroundColorA";
+    [Header("Database")]
+    [SerializeField] DatabaseStorage Database;
 
     private Color TimeColorOnStart;
     private Color BackgroundColorOnStart;
@@ -49,15 +28,12 @@ public class MainScript : MonoBehaviour
         ButtonExit.onClick.AddListener(OnClickButtonExit);
         ButtonSettings.onClick.AddListener(OnClickButtonSettings);
 
-        ButtonTimeColor.onClick.AddListener(OnClickButtonTimeColor);
-        ButtonBackgroundColor.onClick.AddListener(OnClickButtonBackgroundColor);
-        ColorPicker.onColorChange.AddListener(OnColorChange);
+        SettingsMenu.TimeColorPicked += OnTimeColorPicked;
+        SettingsMenu.BackgroundColorPicked += OnBackgroundColorPicked;
 
-        ColorPickerObject = ColorPicker.gameObject;
-
-        LoadTimeColor();
+        TextTime.color = Database.LoadTimeColor();
         TimeColorOnStart = TextTime.color;
-        LoadBackgroundColor();
+        Camera.backgroundColor = Database.LoadBackgroundColor();
         BackgroundColorOnStart = Camera.backgroundColor;
     }
 
@@ -83,7 +59,7 @@ public class MainScript : MonoBehaviour
             TextTime.color.b != TimeColorOnStart.b ||
             TextTime.color.a != TimeColorOnStart.a
         ) {
-            SaveTimeColor();
+            Database.SaveTimeColor(TextTime.color);
         }
 
         if (
@@ -92,72 +68,25 @@ public class MainScript : MonoBehaviour
             Camera.backgroundColor.b != BackgroundColorOnStart.b ||
             Camera.backgroundColor.a != BackgroundColorOnStart.a
         ) {
-            SaveBackgroundColor();
+            Database.SaveBackgroundColor(Camera.backgroundColor);
         }
 
         Application.Quit();
     }
 
+    private void OnTimeColorPicked(Color color)
+    {
+        TextTime.color = color;
+    }
+
+    private void OnBackgroundColorPicked(Color color)
+    {
+        Camera.backgroundColor = color;
+    }
+
     private void OnClickButtonSettings()
     {
         PanelSettings.SetActive(!PanelSettings.activeSelf);
-        if (ColorPickerObject.activeSelf) {
-            ColorPickerObject.SetActive(false);
-
-            editMode = EditMode.None;
-        }
-    }
-
-    private void OnClickButtonTimeColor()
-    {
-        editMode = EditMode.TimeColor;
-        ColorPickerObject.SetActive(true);
-    }
-
-    private void OnClickButtonBackgroundColor()
-    {
-        editMode = EditMode.BackgroundColor;
-        ColorPickerObject.SetActive(true);
-    }
-
-    private void OnColorChange(Color color)
-    {
-        if(editMode == EditMode.TimeColor) {
-            TextTime.color = color;
-        }
-        if(editMode == EditMode.BackgroundColor) {
-            Camera.backgroundColor = color;
-        }
-    }
-
-    private void LoadTimeColor()
-    {
-        if (PlayerPrefs.HasKey(TimeColorA)) {
-            TextTime.color = new Color(PlayerPrefs.GetFloat(TimeColorR), PlayerPrefs.GetFloat(TimeColorG), PlayerPrefs.GetFloat(TimeColorB), PlayerPrefs.GetFloat(TimeColorA));
-        }
-    }
-
-    private void LoadBackgroundColor()
-    {
-        if (PlayerPrefs.HasKey(BackgroundColorA)) {
-            Camera.backgroundColor = new Color(PlayerPrefs.GetFloat(BackgroundColorR), PlayerPrefs.GetFloat(BackgroundColorG), PlayerPrefs.GetFloat(BackgroundColorB), PlayerPrefs.GetFloat(BackgroundColorA));
-        }
-    }
-
-    private void SaveTimeColor()
-    {
-        PlayerPrefs.SetFloat(TimeColorR, TextTime.color.r);
-        PlayerPrefs.SetFloat(TimeColorG, TextTime.color.g);
-        PlayerPrefs.SetFloat(TimeColorB, TextTime.color.b);
-        PlayerPrefs.SetFloat(TimeColorA, TextTime.color.a);
-    }
-
-    private void SaveBackgroundColor()
-    {
-        PlayerPrefs.SetFloat(BackgroundColorR, Camera.backgroundColor.r);
-        PlayerPrefs.SetFloat(BackgroundColorG, Camera.backgroundColor.g);
-        PlayerPrefs.SetFloat(BackgroundColorB, Camera.backgroundColor.b);
-        PlayerPrefs.SetFloat(BackgroundColorA, Camera.backgroundColor.a);
     }
 
     void OnDestroy()
@@ -165,8 +94,7 @@ public class MainScript : MonoBehaviour
         ButtonExit.onClick.RemoveListener(OnClickButtonExit);
         ButtonSettings.onClick.RemoveListener(OnClickButtonSettings);
 
-        ButtonTimeColor.onClick.RemoveListener(OnClickButtonTimeColor);
-        ButtonBackgroundColor.onClick.RemoveListener(OnClickButtonBackgroundColor);
-        ColorPicker.onColorChange.RemoveListener(OnColorChange);
+        SettingsMenu.TimeColorPicked -= OnTimeColorPicked;
+        SettingsMenu.BackgroundColorPicked -= OnBackgroundColorPicked;
     }
 }
