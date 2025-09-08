@@ -2,7 +2,7 @@
 
 The application simply displays time in large numbers across entire window.
 
-![icon](https://raw.githubusercontent.com/LordOfTheFridge/Unity_TimeDisplay/screenshot.png)
+![](https://github.com/LordOfTheFridge/Unity_TimeDisplay/blob/master/screenshot.png)
 
 User can customize time and background colors.
 
